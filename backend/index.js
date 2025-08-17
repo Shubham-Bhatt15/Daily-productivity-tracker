@@ -1,91 +1,53 @@
+// index.js
 require('dotenv').config();
 const express = require('express');
 const connectDB = require('./config/db');
 const cors = require('cors');
 
-// const authRoutes = require('./routes/authRoutes');
-// const taskRoutes = require('./routes/taskRoutes');
-// const dashboardRoutes = require('./routes/dashboard'); 
+// Import route handlers
+const authRoutes = require('./routes/authRoutes');
+const taskRoutes = require('./routes/taskRoutes');
+const dashboardRoutes = require('./routes/dashboard'); 
+
+// --- Environment Variables ---
 const PORT = process.env.PORT || 5000;
 
+// --- Initialize Express App ---
 const app = express();
-app.listen(PORT, () => {
-  console.log("server is running")
-})
 
-// Middleware
-app.use(cors());
+// --- Core Middleware ---
+// Enable Cross-Origin Resource Sharing
+app.use(cors()); 
+// Parse incoming JSON requests
 app.use(express.json());
 
+// --- API Routes ---
+// A simple root route to check if the API is running
 app.get('/', (req, res) => {
-  res.send('API is running');  //changes made
+  res.send('API is running successfully!');
 });
 
-console.log("hii")
-// // Routes
-// app.use('/api/auth', authRoutes);
-// app.use('/api/tasks', taskRoutes);
-// app.use('/api/dashboard', dashboardRoutes);  
-//           // ✅ route prefix
+// Mount the route handlers for different parts of the API
+// All auth-related routes (like /login, /register) will be handled by authRoutes
+app.use('/api/auth', authRoutes);
+// All task-related routes will be handled by taskRoutes
+app.use('/api/tasks', taskRoutes);
+// All dashboard-related routes will be handled by dashboardRoutes
+app.use('/api/dashboard', dashboardRoutes);
 
 
-
-// Error handling middleware
+// --- Generic Error Handling Middleware ---
+// This will catch any errors that occur in the route handlers
 app.use((err, req, res, next) => {
-  res.status(500).json({ message: err.message });
+  console.error(err.stack); // Log the error stack for debugging
+  res.status(500).json({ message: err.message || 'An unexpected error occurred.' });
 });
 
-
-
+// --- Start Server ---
+// Connect to the database first, then start the Express server
 connectDB().then(() => {
   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+}).catch(err => {
+    console.error("Failed to connect to DB", err);
+    process.exit(1);
 });
-
-app.post("/login", async (req, res) => {
-  const { email, password } = req.body;
-
-  try {
-    const user = await User.findOne({ email });
-    if (!user || !(await user.matchPassword(password))) {
-      return res.status(401).json({ message: 'Invalid credentials' });
-    }
-
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: '30d',
-    });
-
-    res.json({ _id: user._id, name: user.name, email, token });
-  } catch (err) {
-    res.status(500).json({ message: 'Server Error' });
-  }
-})
-
-
-// REGISTER
-app.post("/register", async (req, res) => {
-  const { name, email, password } = req.body;
-  console.log("called")
-
-    if (!name || !email || !password) {
-    return res.status(400).json({ message: 'Please fill all fields' });
-  }
-
-  try {
-    const userExists = await User.findOne({ email });
-    if (userExists) {
-      console.log("not exit ")
-      return res.status(400).json({ message: 'User already exists' });
-    }
-
-    console.log("yups")
-    const user = await User.create({ name, email, password });
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: '30d',
-    });
-    console.log("jbedjbwe" , token)
-
-    res.status(201).json({ _id: user._id, name, email, token });
-  } catch (err) {
-    res.status(500).json({ message: 'Server Error' });
-  }
-})

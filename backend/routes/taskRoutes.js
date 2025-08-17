@@ -1,19 +1,35 @@
 const express = require('express');
-const { getTasks, createTask, toggleTask, deleteTask,updateTaskTime,startTimer,stopTimer } = require('../controllers/taskController');
-const { protect } = require('../middleware/auth');
-
 const router = express.Router();
 
+// Import the controller functions
+const { 
+    getTasks, 
+    createTask, 
+    toggleTask, 
+    deleteTask,
+    updateTaskTime,
+    startTimer,
+    stopTimer 
+} = require('../controllers/taskController');
+
+// Import the authentication middleware
+const { protect } = require('../middleware/auth');
+
+// --- Route Definitions ---
+
+// Routes for /api/tasks
 router.route('/')
   .get(protect, getTasks)
   .post(protect, createTask);
 
+// Routes for /api/tasks/:id
 router.route('/:id')
   .put(protect, toggleTask)
   .delete(protect, deleteTask);
 
+// Routes for timers and time updates
 router.patch('/:id/time', protect, updateTaskTime);
-router.patch('/:id/start-timer',protect,startTimer); //start automatic
-router.patch('/:id/stop-timer',protect,stopTimer);    //Stop automatic timer
+router.patch('/:id/start-timer', protect, startTimer);
+router.patch('/:id/stop-timer', protect, stopTimer);
 
 module.exports = router;

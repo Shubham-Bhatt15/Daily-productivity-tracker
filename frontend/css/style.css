@@ -1,0 +1,210 @@
+/* --- Global Styles & Fonts --- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+    --primary-color: #007bff;
+    --primary-hover: #0056b3;
+    --danger-color: #dc3545;
+    --danger-hover: #c82333;
+    --success-color: #28a745;
+    --success-hover: #218838;
+    --warning-color: #ffc107;
+    --warning-hover: #e0a800;
+    --background-color: #f0f2f5;
+    --card-background: #ffffff;
+    --text-color: #333;
+    --text-muted: #6c757d;
+    --label-color: #555;
+    --border-color: #dee2e6;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    background-color: var(--background-color);
+    color: var(--text-color);
+}
+
+/* NEW: Body style specifically for centering auth forms */
+.auth-body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* --- Auth Page Styles (Login/Register) --- */
+.auth-container {
+    background-color: var(--card-background);
+    padding: 2.5rem;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 420px;
+    text-align: center;
+    box-sizing: border-box;
+    margin: 1rem;
+}
+
+.auth-container h2 { margin-top: 0; margin-bottom: 1.5rem; font-weight: 700; }
+.auth-container .input-group { margin-bottom: 1.25rem; text-align: left; }
+.auth-container label { display: block; margin-bottom: 0.5rem; color: var(--label-color); font-weight: 600; }
+.auth-container input {
+    width: 100%; padding: 0.85rem; border: 1px solid var(--border-color);
+    border-radius: 8px; box-sizing: border-box; font-size: 1rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.auth-container input:focus {
+    outline: none; border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+}
+.auth-container button {
+    width: 100%; padding: 0.85rem; border: none; border-radius: 8px;
+    background-color: var(--primary-color); color: white; font-size: 1rem;
+    font-weight: 600; cursor: pointer; transition: background-color 0.2s;
+}
+.auth-container button:hover { background-color: var(--primary-hover); }
+.auth-container .auth-link { margin-top: 1.5rem; font-size: 0.9rem; }
+.auth-container .auth-link a { color: var(--primary-color); text-decoration: none; font-weight: 500; }
+.auth-container .auth-link a:hover { text-decoration: underline; }
+#message { margin-top: 1rem; font-weight: 500; min-height: 1.2em; }
+.success { color: var(--success-color); }
+.error { color: var(--danger-color); }
+
+/* --- Dashboard Styles --- */
+.container { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 2rem;
+}
+header h1 { margin: 0; }
+#logout-btn {
+    background-color: var(--danger-color); color: white; border: none;
+    padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 600; cursor: pointer;
+    transition: background-color 0.2s;
+}
+#logout-btn:hover { background-color: var(--danger-hover); }
+.dashboard-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+.card {
+    background-color: var(--card-background); padding: 1.5rem;
+    border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+.card h2 { margin-top: 0; }
+#task-form { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+#task-input {
+    flex-grow: 1; padding: 0.85rem; border: 1px solid var(--border-color);
+    border-radius: 8px; font-size: 1rem;
+}
+#task-form button {
+    background-color: var(--primary-color); color: white; border: none;
+    padding: 0.85rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer;
+    transition: background-color 0.2s;
+}
+#task-form button:hover { background-color: var(--primary-hover); }
+#task-list { list-style: none; padding: 0; margin: 0; }
+
+/* --- Task Item & Timer Styles --- */
+.task-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border-color);
+    gap: 1rem;
+}
+.task-item:last-child { border-bottom: none; }
+
+.task-item-main {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+}
+
+.task-item input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    margin-right: 1rem;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.task-details {
+    flex-grow: 1;
+}
+
+.task-title {
+    display: block;
+}
+
+.task-item.completed .task-title {
+    text-decoration: line-through;
+    color: var(--text-muted);
+}
+
+.task-time {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+}
+
+.task-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+.timer-btn {
+    background: none;
+    border: 2px solid;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.start-btn {
+    color: var(--success-color);
+    border-color: var(--success-color);
+}
+.start-btn:hover {
+    background-color: var(--success-color);
+    color: white;
+}
+
+.stop-btn {
+    color: var(--warning-color);
+    border-color: var(--warning-color);
+}
+.stop-btn:hover {
+    background-color: var(--warning-color);
+    color: white;
+}
+
+.delete-btn {
+    background: none;
+    border: none;
+    color: var(--danger-color);
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 1.5rem;
+    padding: 0.5rem;
+}
+.delete-btn:hover {
+    color: var(--danger-hover);
+}
+
+/* --- Stats Container Styles --- */
+#stats-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+}
+.stat-box { text-align: center; }
+.stat-box p { margin: 0; color: var(--text-muted); }
+.stat-box .stat-number { font-size: 2rem; font-weight: 700; color: var(--primary-color); }

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Task Manager</title>
+    <!-- Link to the shared stylesheet -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>My Tasks</h1>
+            <button id="logout-btn">Logout</button>
+        </header>
+        <main class="dashboard-grid">
+            <div class="card">
+                <h2>Dashboard Stats</h2>
+                <div id="stats-container">
+                    <p>Loading stats...</p>
+                </div>
+            </div>
+            <div class="card">
+                <h2>Add a New Task</h2>
+                <form id="task-form">
+                    <input type="text" id="task-input" placeholder="e.g., Finish project report" required>
+                    <button type="submit">Add Task</button>
+                </form>
+                <h2>Task List</h2>
+                <ul id="task-list">
+                    <!-- Task items will be dynamically inserted here by JavaScript -->
+                    <li><p>Loading tasks...</p></li>
+                </ul>
+            </div>
+        </main>
+    </div>
+
+    <!-- Link to the dashboard JavaScript file -->
+    <script src="js/dashboard.js"></script>
+</body>
+</html>
