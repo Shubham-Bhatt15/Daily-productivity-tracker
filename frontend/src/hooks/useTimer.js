@@ -1,15 +1,29 @@
 import { useState, useEffect, useRef } from 'react';
 import api from '../api/axios';
 
-export const useTimer = (taskId, initialTime = 0, isRunning = false) => {
-  const [elapsed, setElapsed] = useState(initialTime);
+export const useTimer = (taskId, initialTime = 0, isRunning = false, lastStartedAt = null) => {
+  const getElapsed = () => {
+    if (isRunning && lastStartedAt) {
+      return initialTime + Math.floor((Date.now() - new Date(lastStartedAt).getTime()) / 1000);
+    }
+    return initialTime;
+  };
+
+  const [elapsed, setElapsed] = useState(getElapsed);
   const [running, setRunning] = useState(isRunning);
   const intervalRef = useRef(null);
+  const startedAtRef = useRef(lastStartedAt);
+  const baseTimeRef = useRef(initialTime);
 
   useEffect(() => {
     if (running) {
       intervalRef.current = setInterval(() => {
-        setElapsed(prev => prev + 1);
+        // Calculate from real timestamps, not by counting ticks
+        const base = baseTimeRef.current;
+        const start = startedAtRef.current;
+        if (start) {
+          setElapsed(base + Math.floor((Date.now() - new Date(start).getTime()) / 1000));
+        }
       }, 1000);
     } else {
       clearInterval(intervalRef.current);
@@ -18,12 +32,18 @@ export const useTimer = (taskId, initialTime = 0, isRunning = false) => {
   }, [running]);
 
   const start = async () => {
-    await api.patch(`/tasks/${taskId}/start-timer`);
+    const res = await api.patch(`/tasks/${taskId}/start-timer`);
+    baseTimeRef.current = res.data.timeSpent;
+    startedAtRef.current = res.data.lastStartedAt;
+    setElapsed(res.data.timeSpent);
     setRunning(true);
   };
 
   const stop = async () => {
-    await api.patch(`/tasks/${taskId}/stop-timer`);
+    const res = await api.patch(`/tasks/${taskId}/stop-timer`);
+    baseTimeRef.current = res.data.timeSpent;
+    startedAtRef.current = null;
+    setElapsed(res.data.timeSpent);
     setRunning(false);
   };
 
@@ -35,4 +55,4 @@ export const useTimer = (taskId, initialTime = 0, isRunning = false) => {
   };
 
   return { elapsed, running, start, stop, formatted: format(elapsed) };
-};
+}; 
