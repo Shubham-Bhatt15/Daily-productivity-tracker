@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 /**
  * @desc    Generate JWT for a user
  * @param   {string} id - The user ID
@@ -23,14 +23,21 @@ const registerUser = async (req, res) => {
   if (!name || !email || !password) {
     return res.status(400).json({ message: 'Please provide all required fields' });
   }
+  const normalizedEmail = String(email).trim().toLowerCase();
 
+  if(!EMAIL_REGEX.test(normalizedEmail)){
+    return res.status(400).json({ message: 'Please provide a valid email address'});
+  }
+  if(password.length<6){
+    return res.status(400).json({message: 'Password must be at least 6 characters'})
+  }
   try {
-    const userExists = await User.findOne({ email });
+    const userExists = await User.findOne({ email:normalizedEmail });
     if (userExists) {
       return res.status(400).json({ message: 'User with this email already exists' });
     }
 
-    const user = await User.create({ name, email, password });
+    const user = await User.create({ name:name.trim(), email:normalizedEmail, password });
 
     if (user) {
       res.status(201).json({
@@ -44,6 +51,10 @@ const registerUser = async (req, res) => {
     }
   } catch (err) {
     console.error(err);
+    if(err.name==='ValidationError'){
+      const message = Object.values(err.errors)[0]?.message || 'Invalid user data';
+      return res.status(400).json({ message });
+    }
     res.status(500).json({ message: 'Server Error' });
   }
 };
@@ -56,8 +67,12 @@ const registerUser = async (req, res) => {
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
+  if(!email || !password) {
+    return res.status(400).json({message: 'Please provide email and password'});
+  }
+
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: String(email).trim().toLowerCase() });
 
     if (user && (await user.matchPassword(password))) {
       res.json({
@@ -96,34 +111,7 @@ const validateToken = (req, res) => {
 };
 
 
-/**
- * @desc    Middleware to protect routes by verifying JWT
- * @access  Private
- */
-const protect = async (req, res, next) => {
-  let token;
 
-  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-    try {
-      token = req.headers.authorization.split(' ')[1];
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      req.user = await User.findById(decoded.id).select('-password');
-      
-      if (!req.user) {
-          return res.status(401).json({ message: 'Not authorized, user not found' });
-      }
-
-      next();
-    } catch (err) {
-      console.error('Token verification failed:', err.message);
-      res.status(401).json({ message: 'Not authorized, token failed' });
-    }
-  }
-
-  if (!token) {
-    res.status(401).json({ message: 'Not authorized, no token provided' });
-  }
-};
 
 // --- EXPORTS ---
 // This line makes all the functions available to other files.
@@ -132,5 +120,4 @@ module.exports = {
   loginUser,
   getMe,
   validateToken,
-  protect
 };

@@ -7,6 +7,7 @@ const taskSchema = mongoose.Schema(
     timeSpent: { type: Number, default: 0,min: [0,'Time cannot be negative'] },
     completed: { type: Boolean, default: false },
     date: { type: Date, default: Date.now },
+    description: { type: String, default: '' },
 
     isRunning: {  // NEW: For tracking active timers
       type: Boolean,
@@ -17,7 +18,7 @@ const taskSchema = mongoose.Schema(
     }
   },
   { timestamps: true,
-    toJson: {virtuals:true},
+    toJSON: {virtuals:true},
     toObject:{ virtuals:true}
 
 
