@@ -4,7 +4,8 @@ const TaskCard = ({ task, onToggle, onDelete, onUpdateTime }) => {
   const { formatted, running, start, stop } = useTimer(
     task._id,
     task.timeSpent || 0,
-    task.timerRunning || false
+    task.timerRunning || false,
+    task.lastStartedAt
   );
 
   const handleTimerToggle = async () => {

@@ -14,7 +14,7 @@ export default function Login() {
   setLoading(true);
   try {
     await login(form.email, form.password);
-    console.log('3. Login done, navigating to /');
+
     navigate('/', { replace: true });
   } catch (err) {
     console.log('4. Login error:', err);

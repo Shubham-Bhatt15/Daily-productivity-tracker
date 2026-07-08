@@ -14,7 +14,7 @@ const getTasks = async (req, res) => {
 // @desc    Create a task
 // @route   POST /api/tasks
 const createTask = async (req, res) => {
-  const { title } = req.body;
+  const { title,description } = req.body;
 
   try {
     const task = await Task.create({
@@ -55,7 +55,7 @@ const toggleTask = async (req, res) => {
 // @route   DELETE /api/tasks/:id
 const deleteTask = async (req, res) => {
   try {
-    const task = await Task.findByIdAndDelete(req.params.id);
+    const task = await Task.findOneAndDelete({_id: req.params.id, user:req.user._id});
     if (!task) return res.status(404).json({ message: 'Task not found' });
 
     // await task.remove();         // yha bhi change tha
@@ -77,7 +77,7 @@ const updateTaskTime = async (req, res) => {
     }
 
     const task = await Task.findByIdAndUpdate(
-      req.params.id,
+      {_id: req.params.id, user: req.user._id},
       { timeSpent },
       { new: true, runValidators: true }
     );
