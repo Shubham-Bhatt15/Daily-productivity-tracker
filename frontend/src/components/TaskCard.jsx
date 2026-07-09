@@ -1,19 +1,17 @@
-import { useTimer } from '../hooks/useTimer';
+import { useTimerContext } from '../context/TimerContext';
 
 const TaskCard = ({ task, onToggle, onDelete, onUpdateTime }) => {
-  const { formatted, running, start, stop } = useTimer(
-    task._id,
-    task.timeSpent || 0,
-    task.timerRunning || false,
-    task.lastStartedAt
-  );
+  const { isTaskRunning, liveElapsed, startTimer, stopTimer, format } = useTimerContext();
+
+  const running = isTaskRunning(task._id);
+  const displaySeconds = running ? liveElapsed : task.timeSpent || 0;
 
   const handleTimerToggle = async () => {
     if (running) {
-      await stop();
+      await stopTimer(task._id);
       onUpdateTime(task._id);
     } else {
-      await start();
+      await startTimer(task._id);
     }
   };
 
@@ -34,7 +32,7 @@ const TaskCard = ({ task, onToggle, onDelete, onUpdateTime }) => {
       )}
 
       <div className="task-footer">
-        <span className="task-time">⏱ {formatted}</span>
+        <span className="task-time">⏱ {format(displaySeconds)}</span>
         <button
           onClick={handleTimerToggle}
           className={`btn-timer ${running ? 'running' : ''}`}

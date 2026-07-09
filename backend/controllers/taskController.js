@@ -20,7 +20,7 @@ const createTask = async (req, res) => {
     const task = await Task.create({
       user: req.user._id,
       title,
-     
+      description,
     });
     res.status(201).json(task);
   } catch (err) {
@@ -32,7 +32,7 @@ const createTask = async (req, res) => {
 // @route   PUT /api/tasks/:id
 const toggleTask = async (req, res) => {
   try {
-    const task = await Task.findById(req.params.id);
+    const task = await Task.findOne({ _id: req.params.id, user: req.user._id });
     if (!task) return res.status(404).json({ message: 'Task not found' });
     
     
@@ -76,8 +76,8 @@ const updateTaskTime = async (req, res) => {
       return res.status(400).json({ message: 'Invalid time value' });
     }
 
-    const task = await Task.findByIdAndUpdate(
-      {_id: req.params.id, user: req.user._id},
+    const task = await Task.findOneAndUpdate(
+      { _id: req.params.id, user: req.user._id },
       { timeSpent },
       { new: true, runValidators: true }
     );
@@ -96,20 +96,36 @@ const updateTaskTime = async (req, res) => {
 // NEW CONTROLLER: Start task timer
 // @desc    Start task timer  
 // @route   PATCH /api/tasks/:id/start-timer  
+// @desc    Start task timer
+// @route   PATCH /api/tasks/:id/start-timer
 const startTimer = async (req, res) => {
   try {
-    const task = await Task.findById(req.params.id);
+    const task = await Task.findOne({ _id: req.params.id, user: req.user._id });
     if (!task) return res.status(404).json({ message: 'Task not found' });
 
-    // Prevent starting timer on completed tasks
     if (task.completed) {
       return res.status(400).json({ message: 'Cannot start timer on completed task' });
+    }
+
+    // Enforce only one running timer per user: stop any other task
+    // that's currently running before starting this one.
+    const otherRunning = await Task.find({
+      user: req.user._id,
+      isRunning: true,
+      _id: { $ne: task._id },
+    });
+
+    for (const other of otherRunning) {
+      const elapsed = Math.floor((Date.now() - other.lastStartedAt) / 1000);
+      other.timeSpent += elapsed;
+      other.isRunning = false;
+      await other.save();
     }
 
     task.isRunning = true;
     task.lastStartedAt = Date.now();
     await task.save();
-    
+
     res.json(task);
   } catch (err) {
     res.status(500).json({ message: 'Failed to start timer' });
@@ -118,13 +134,12 @@ const startTimer = async (req, res) => {
 
 
 
-
 // NEW: Stop timer controller
 // @desc    Stop task timer
 // @route   PATCH /api/tasks/:id/stop-timer
 const stopTimer = async (req, res) => {
   try {
-    const task = await Task.findById(req.params.id);
+    const task = await Task.findOne({ _id: req.params.id, user: req.user._id });
     if (!task) return res.status(404).json({ message: 'Task not found' });
 
     if (!task.isRunning) {
