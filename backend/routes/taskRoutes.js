@@ -7,6 +7,7 @@ const {
     createTask, 
     toggleTask, 
     deleteTask,
+    updateTaskDetails,
     updateTaskTime,
     startTimer,
     stopTimer 
@@ -28,6 +29,7 @@ router.route('/:id')
   .delete(protect, deleteTask);
 
 // Routes for timers and time updates
+router.patch('/:id/details', protect, updateTaskDetails);
 router.patch('/:id/time', protect, updateTaskTime);
 router.patch('/:id/start-timer', protect, startTimer);
 router.patch('/:id/stop-timer', protect, stopTimer);

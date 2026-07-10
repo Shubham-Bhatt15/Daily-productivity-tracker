@@ -4,7 +4,17 @@ const Task = require('../models/Task');
 // @route   GET /api/tasks
 const getTasks = async (req, res) => {
   try {
-    const tasks = await Task.find({ user: req.user._id });
+    let query = Task.find({user:req.user._id});
+
+    if(req.query.sort === 'dueDate'){
+      const tasks = await Task.aggregate([
+        { $match: { user: req.user._id}},
+        { $addFields: {hasDueDate:{ $cond: [{$ifNull: ['$dueDate',false]},1,0]}}},
+        { $sort: {hasDueDate: -1, dueDate:1, createdAt: -1}},
+      ])
+      return res.json(tasks);
+    }
+    const tasks = await query.sort({ createdAt: -1});
     res.json(tasks);
   } catch (err) {
     res.status(500).json({ message: 'Server Error' });
@@ -15,14 +25,61 @@ const getTasks = async (req, res) => {
 // @route   POST /api/tasks
 const createTask = async (req, res) => {
   const { title,description } = req.body;
+  if(!title || !title.trim()){
+    return res.status(400).json({message: 'Title is required'});
+  }
+  if (dueDate && isNaN(new Date(dueDate).getTime())){
+    return res.status(400).json({message: 'Invalid due date'});
+  }
 
   try {
     const task = await Task.create({
       user: req.user._id,
-      title,
-      description,
+      title:title.trim(),
+      description:description ? description.trim():'',
+      dueDate: duedDate ? newDate(dueDate): null,
     });
     res.status(201).json(task);
+  } catch (err) {
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
+const updateTaskDetails = async (req, res) => {
+  try {
+    const { title, description, dueDate } = req.body;
+    const updates = {};
+
+    if (title !== undefined) {
+      if (!title.trim()) {
+        return res.status(400).json({ message: 'Title cannot be empty' });
+      }
+      updates.title = title.trim();
+    }
+
+    if (description !== undefined) {
+      updates.description = description.trim();
+    }
+
+    if (dueDate !== undefined) {
+      if (dueDate === null || dueDate === '') {
+        updates.dueDate = null;
+      } else if (isNaN(new Date(dueDate).getTime())) {
+        return res.status(400).json({ message: 'Invalid due date' });
+      } else {
+        updates.dueDate = new Date(dueDate);
+      }
+    }
+
+    const task = await Task.findOneAndUpdate(
+      { _id: req.params.id, user: req.user._id },
+      updates,
+      { new: true, runValidators: true }
+    );
+
+    if (!task) return res.status(404).json({ message: 'Task not found' });
+
+    res.json(task);
   } catch (err) {
     res.status(500).json({ message: 'Server Error' });
   }
@@ -58,7 +115,6 @@ const deleteTask = async (req, res) => {
     const task = await Task.findOneAndDelete({_id: req.params.id, user:req.user._id});
     if (!task) return res.status(404).json({ message: 'Task not found' });
 
-    // await task.remove();         // yha bhi change tha
     res.json({ message: 'Task removed' });
   } catch (err) {
     res.status(500).json({ message: 'Server Error' });
@@ -158,4 +214,4 @@ const stopTimer = async (req, res) => {
   }
 };
 
-module.exports = { getTasks, createTask, toggleTask, deleteTask,updateTaskTime,startTimer,stopTimer };
+module.exports = { getTasks, createTask, toggleTask, deleteTask,updateTaskTime,updateTaskDetails,startTimer,stopTimer };
