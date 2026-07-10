@@ -5,7 +5,7 @@ import TaskCard from '../components/TaskCard';
 const Tasks = () => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [form, setForm] = useState({ title: '', description: '' });
+  const [form, setForm] = useState({ title: '', description: '',dueDate: '' });
   const [submitting, setSubmitting] = useState(false);
   const [filter, setFilter] = useState('all');
 
@@ -58,6 +58,16 @@ const Tasks = () => {
     if (filter === 'completed') return t.completed;
     return true;
   });
+
+ const handleUpdateDueDate = async (id, dueDate) => {
+  try {
+    const res = await api.patch(`/tasks/${id}/details`, { dueDate: dueDate || null });
+    console.log('PATCH response:', res.data); // check this in devtools, remove once confirmed
+    setTasks(prev => prev.map(t => (t._id === id ? res.data : t)));
+  } catch (err) {
+    console.error('Failed to update due date:', err.response?.data || err.message);
+  }
+};
 
   return (
     <div className="page">
@@ -112,6 +122,7 @@ const Tasks = () => {
               onToggle={handleToggle}
               onDelete={handleDelete}
               onUpdateTime={handleUpdateTime}
+              onUpdateDueDate={handleUpdateDueDate}
             />
           ))}
         </div>
