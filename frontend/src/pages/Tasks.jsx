@@ -122,7 +122,7 @@ const Tasks = () => {
               onToggle={handleToggle}
               onDelete={handleDelete}
               onUpdateTime={handleUpdateTime}
-              onUpdateDueDate={handleUpdateDueDate}
+              
             />
           ))}
         </div>
