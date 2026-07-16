@@ -1,5 +1,7 @@
 # TaskFlow — Daily Productivity Tracker
 
+![CI](https://github.com/Shubham-Bhatt15/Daily-productivity-tracker/actions/workflows/ci.yml/badge.svg?branch=master)
+
 A full-stack MERN app for tracking daily tasks, timing focused work sessions, and visualizing your productivity with a live dashboard.
 
 Track what you're working on, run a timer per task, mark things done, and see completion rate, time tracked, and pending work at a glance.
