@@ -28,22 +28,23 @@ export const TimerProvider = ({ children })=>{
 
     }, [runningTaskId, startedAt,baseTime]);
     
-    useEffect(()=>{
-        const restoreRunningTask = async ()=>{
-            try{
-                const res = await api.get('/tasks');
-                const running = res.data.find((t) => t.isRunning);
-                if(running){
-                    setRunningTaskId(running._id);
-                    setBaseTime(running.timeSpent);
-                    setStartedAt(running.lastStartedAt);
-                } 
-            }catch(err){
+    useEffect(() => {
+    const restoreRunningTask = async () => {
+        const token = localStorage.getItem('token');
+        if (!token) return; // nothing to restore if not logged in
 
+        try {
+            const res = await api.get('/tasks');
+            const running = res.data.find((t) => t.isRunning);
+            if (running) {
+                setRunningTaskId(running._id);
+                setBaseTime(running.timeSpent);
+                setStartedAt(running.lastStartedAt);
             }
-        }
-        restoreRunningTask();
-    },[]);
+        } catch (err) {}
+    };
+    restoreRunningTask();
+}, []);
 
     const startTimer =  useCallback(async (taskId)=>{
         const res = await api.patch(`/tasks/${taskId}/start-timer`);

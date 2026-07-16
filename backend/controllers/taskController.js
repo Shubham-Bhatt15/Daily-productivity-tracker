@@ -1,7 +1,26 @@
 const Task = require('../models/Task');
+const TimerSession = require('../models/TimerSession');
 
 // @desc    Get all tasks for a user
 // @route   GET /api/tasks
+
+const stopTimerAndLogSession =  async (task) =>{
+  const startedAt = new  Date(task.lastStartedAt);
+  const endedAt = new Date();
+  const elapsed = Math.floor((endedAt-startedAt)/1000);
+
+  task.timeSpent += elapsed;
+  task.isRunning = false;
+
+  await TimerSession.create({
+    task: task._id,
+    user: task.user,
+    startedAt,
+    endedAt,
+    durationSeconds: elapsed,
+  });
+  return elapsed
+}
 const getTasks = async (req, res) => {
   try {
     let query = Task.find({user:req.user._id});
@@ -24,7 +43,7 @@ const getTasks = async (req, res) => {
 // @desc    Create a task
 // @route   POST /api/tasks
 const createTask = async (req, res) => {
-  const { title,description } = req.body;
+  const { title,description,dueDate } = req.body;
   if(!title || !title.trim()){
     return res.status(400).json({message: 'Title is required'});
   }
@@ -37,7 +56,7 @@ const createTask = async (req, res) => {
       user: req.user._id,
       title:title.trim(),
       description:description ? description.trim():'',
-      dueDate: duedDate ? newDate(dueDate): null,
+      dueDate: dueDate ? newDate(dueDate): null,
     });
     res.status(201).json(task);
   } catch (err) {
@@ -94,10 +113,8 @@ const toggleTask = async (req, res) => {
     
     
     // NEW: Stop timer if task is being marked complete
-    if (!task.completed && task.isRunning) {
-      const elapsed = Math.floor((Date.now() - task.lastStartedAt) / 1000);
-      task.timeSpent += elapsed;
-      task.isRunning = false;
+   if (!task.completed && task.isRunning) {
+      await stopTimerAndLogSession(task);
     }
     
      task.completed = !task.completed;
@@ -115,7 +132,11 @@ const deleteTask = async (req, res) => {
     const task = await Task.findOneAndDelete({_id: req.params.id, user:req.user._id});
     if (!task) return res.status(404).json({ message: 'Task not found' });
 
-    res.json({ message: 'Task removed' });
+    await TimerSession.deleteMany({task: task._id,user:req.user._id});
+
+    res.json({message: 'Task removed'});
+
+   
   } catch (err) {
     res.status(500).json({ message: 'Server Error' });
   }
@@ -172,9 +193,7 @@ const startTimer = async (req, res) => {
     });
 
     for (const other of otherRunning) {
-      const elapsed = Math.floor((Date.now() - other.lastStartedAt) / 1000);
-      other.timeSpent += elapsed;
-      other.isRunning = false;
+      await stopTimerAndLogSession(other);
       await other.save();
     }
 
@@ -203,9 +222,7 @@ const stopTimer = async (req, res) => {
     }
 
     // Calculate elapsed time and update
-    const elapsed = Math.floor((Date.now() - task.lastStartedAt) / 1000);
-    task.timeSpent += elapsed;
-    task.isRunning = false;
+    await stopTimerAndLogSession(task);
     await task.save();
     
     res.json(task);
